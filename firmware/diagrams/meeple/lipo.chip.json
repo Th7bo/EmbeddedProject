@@ -1,0 +1,6 @@
+{
+  "name": "LiPo 1S 3.7V",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["", "", "BAT-", "BAT+"],
+  "controls": []
+}

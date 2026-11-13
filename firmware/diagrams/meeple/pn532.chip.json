@@ -1,0 +1,6 @@
+{
+  "name": "PN532 (I2C mode)",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["GND", "VCC", "SDA", "SCL", "", "", "", ""],
+  "controls": []
+}

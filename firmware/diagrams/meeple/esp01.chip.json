@@ -1,0 +1,6 @@
+{
+  "name": "ESP-01",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["GND","GPIO2","GPIO0","RX","TX","CH_PD","RST","VCC"],
+  "controls": []
+}

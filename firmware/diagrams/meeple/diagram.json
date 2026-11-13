@@ -1,0 +1,386 @@
+{
+  "version": 1,
+  "author": "Snakes & Ladders: Hot or Cold",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-breadboard-half",
+      "id": "bb",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_sda",
+      "top": 35.85,
+      "left": 82.25,
+      "attrs": {
+        "value": "1000"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_scl",
+      "top": 35.85,
+      "left": 101.45,
+      "attrs": {
+        "value": "1000"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_rst",
+      "top": 35.85,
+      "left": 216.65,
+      "attrs": {
+        "value": "1000"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_en",
+      "top": 35.85,
+      "left": 235.85,
+      "attrs": {
+        "value": "1000"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led",
+      "top": 9,
+      "left": 77.8,
+      "attrs": {
+        "color": "blue"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_led",
+      "top": 84.0,
+      "left": 73.45,
+      "attrs": {
+        "value": "1000"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "chip-esp01",
+      "id": "esp",
+      "top": 240,
+      "left": 158,
+      "attrs": {}
+    },
+    {
+      "type": "chip-pn532",
+      "id": "nfc",
+      "top": 94.2,
+      "left": 360,
+      "attrs": {}
+    },
+    {
+      "type": "chip-ldo",
+      "id": "ldo",
+      "top": 230,
+      "left": -58,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "sw",
+      "top": 253.11,
+      "left": -113.63,
+      "attrs": {},
+      "rotate": 180
+    },
+    {
+      "type": "chip-lipo",
+      "id": "bat",
+      "top": 219.6,
+      "left": -207,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [
+      "bb:tp.2",
+      "bb:bp.2",
+      "red",
+      []
+    ],
+    [
+      "bb:tn.3",
+      "bb:bn.3",
+      "black",
+      []
+    ],
+    [
+      "r_sda:1",
+      "bb:tp.8",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_sda:2",
+      "bb:10t.c",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:10t.e",
+      "bb:10b.f",
+      "orange",
+      []
+    ],
+    [
+      "r_scl:1",
+      "bb:tp.10",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_scl:2",
+      "bb:12t.c",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:12t.e",
+      "bb:12b.f",
+      "orange",
+      []
+    ],
+    [
+      "r_rst:1",
+      "bb:tp.20",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_rst:2",
+      "bb:24t.c",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:24t.e",
+      "bb:24b.f",
+      "orange",
+      []
+    ],
+    [
+      "r_en:1",
+      "bb:tp.21",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_en:2",
+      "bb:26t.c",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:26t.e",
+      "bb:26b.f",
+      "orange",
+      []
+    ],
+    [
+      "led:A",
+      "bb:9t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "led:C",
+      "bb:8t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_led:1",
+      "bb:9t.b",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_led:2",
+      "bb:9b.f",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:8t.d",
+      "bb:tn.4",
+      "black",
+      [
+        "h-30.4"
+      ]
+    ],
+    [
+      "esp:GND",
+      "bb:bn.11",
+      "black",
+      [
+        "h-8.8"
+      ]
+    ],
+    [
+      "esp:GPIO2",
+      "bb:12b.j",
+      "blue",
+      [
+        "h-26.4"
+      ]
+    ],
+    [
+      "esp:GPIO0",
+      "bb:10b.j",
+      "green",
+      [
+        "h-45.6"
+      ]
+    ],
+    [
+      "esp:RX",
+      "bb:9b.j",
+      "purple",
+      [
+        "h-55.2"
+      ]
+    ],
+    [
+      "esp:VCC",
+      "bb:bp.19",
+      "red",
+      [
+        "h5.6"
+      ]
+    ],
+    [
+      "esp:RST",
+      "bb:24b.j",
+      "gold",
+      [
+        "h16.8"
+      ]
+    ],
+    [
+      "esp:CH_PD",
+      "bb:26b.j",
+      "gold",
+      [
+        "h36"
+      ]
+    ],
+    [
+      "nfc:SDA",
+      "bb:10b.g",
+      "green",
+      []
+    ],
+    [
+      "nfc:SCL",
+      "bb:12b.h",
+      "blue",
+      []
+    ],
+    [
+      "nfc:VCC",
+      "bb:tp.24",
+      "red",
+      [
+        "h-66.8"
+      ]
+    ],
+    [
+      "nfc:GND",
+      "bb:tn.25",
+      "black",
+      [
+        "h-57.2"
+      ]
+    ],
+    [
+      "ldo:VOUT",
+      "bb:bp.4",
+      "red",
+      [
+        "h48.8"
+      ]
+    ],
+    [
+      "ldo:GND",
+      "bb:bn.5",
+      "black",
+      [
+        "h58.4"
+      ]
+    ],
+    [
+      "ldo:EN",
+      "ldo:VIN",
+      "red",
+      [
+        "h-8",
+        "v-9.6"
+      ]
+    ],
+    [
+      "sw:1",
+      "ldo:EN",
+      "red",
+      []
+    ],
+    [
+      "sw:2",
+      "bat:BAT+",
+      "red",
+      [
+        "v-20"
+      ]
+    ],
+    [
+      "bat:BAT-",
+      "ldo:GND",
+      "black",
+      [
+        "h8",
+        "v56.4",
+        "h151",
+        "v-46"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

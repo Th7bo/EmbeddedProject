@@ -1,0 +1,6 @@
+{
+  "name": "AP2112K-3.3 LDO",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["VIN", "EN", "GND", "VOUT"],
+  "controls": []
+}

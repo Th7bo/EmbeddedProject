@@ -1,0 +1,236 @@
+{
+  "version": 1,
+  "author": "Snakes & Ladders: Hot or Cold",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-breadboard-half",
+      "id": "bb",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": -35.4,
+      "left": 360,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn",
+      "top": 69.6,
+      "left": 19.4,
+      "attrs": {
+        "color": "green",
+        "label": "ROLL"
+      },
+      "rotate": 90
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led",
+      "top": 9,
+      "left": 77.8,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_led",
+      "top": 64.55,
+      "left": 102.2,
+      "attrs": {
+        "value": "1000"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz",
+      "top": -33,
+      "left": 181.4,
+      "attrs": {
+        "volume": "0.2"
+      }
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": 19,
+      "left": 520,
+      "attrs": {
+        "pins": "i2c"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "btn:1.l",
+      "bb:5t.b",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "btn:2.l",
+      "bb:3t.b",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "btn:1.r",
+      "bb:5b.g",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "btn:2.r",
+      "bb:3b.g",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "led:A",
+      "bb:9t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "led:C",
+      "bb:8t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_led:1",
+      "bb:9t.c",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "r_led:2",
+      "bb:15t.c",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bz:1",
+      "bb:20t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bz:2",
+      "bb:21t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "esp:GND.1",
+      "bb:bn.25",
+      "black",
+      [
+        "h-19.61",
+        "v78.1"
+      ]
+    ],
+    [
+      "bb:3b.j",
+      "bb:bn.2",
+      "black",
+      []
+    ],
+    [
+      "bb:8t.e",
+      "bb:bn.6",
+      "black",
+      []
+    ],
+    [
+      "bb:20t.e",
+      "bb:bn.16",
+      "black",
+      []
+    ],
+    [
+      "esp:32",
+      "bz:2",
+      "purple",
+      []
+    ],
+    [
+      "esp:33",
+      "btn:1.l",
+      "gold",
+      []
+    ],
+    [
+      "esp:25",
+      "r_led:2",
+      "orange",
+      []
+    ],
+    [
+      "esp:GND.3",
+      "lcd:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:18",
+      "lcd:SDA",
+      "green",
+      []
+    ],
+    [
+      "esp:5",
+      "lcd:SCL",
+      "blue",
+      []
+    ],
+    [
+      "esp:5V",
+      "lcd:VCC",
+      "red",
+      [
+        "v68.8",
+        "h130.39",
+        "v-174.5"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}
