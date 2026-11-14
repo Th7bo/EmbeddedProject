@@ -1,0 +1,6 @@
+{
+  "name": "OPEN-SMART USB to ESP-01 adapter",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["", "ESP_TX", "GND", "3V3"],
+  "controls": []
+}

@@ -6,7 +6,7 @@ Source of truth for the game rules: `Project_1st_FollowUp_Updated.docx` / the sl
 ## 1. System
 
 ```
- Meeple (ESP-01 + PN532, LED, battery)  ──┐
+ Meeple (ESP-01 + PN532, LED, USB pwr) ──┐
  Meeple ...                               │   Wi-Fi (dedicated router / hotspot)
  Control base (ESP32: LCD, button,     ───┼──►  PC: Mosquitto broker + Python rules controller
                buzzer, LED)               │
@@ -15,7 +15,7 @@ Source of truth for the game rules: `Project_1st_FollowUp_Updated.docx` / the sl
 
 - Devices never talk to each other. All traffic goes through the broker; the controller decides everything.
 - One meeple + one control base per player, 2–4 players.
-- Meeples are battery powered and not wired to anything.
+- Meeples are powered by a USB to ESP-01 adapter (powerbank) and not wired to anything else.
 
 ## 2. Conventions
 
@@ -139,7 +139,7 @@ One-off sounds and LCD flashes. Never retained.
 ### 4.4 Game state (`snl/game/state`)
 
 ```json
-{"state":"running","players":[1,2,3],"turn":2,"winner":null}
+{"state":"running","players":[1,2,3],"turn":2,"winner":null,"paused":false}
 ```
 
 | Key | Type | Meaning |
@@ -148,6 +148,7 @@ One-off sounds and LCD flashes. Never retained.
 | `players` | int[] | joined player ids, in turn order |
 | `turn` | int \| null | active player |
 | `winner` | int \| null | set when `state` is `finished` |
+| `paused` | bool | the active player's base or meeple is offline (§7) |
 
 This replaces `game/turn` and `game/state` from the follow-up doc. Meeples don't subscribe to it: the controller drives their LEDs directly, which keeps the ESP-01 side minimal.
 

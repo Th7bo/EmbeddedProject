@@ -3,7 +3,7 @@
 Firmware is one PlatformIO project in `firmware/` (open that folder in VS Code), with envs `base` and `meeple`. Diagrams are Wokwi `diagram.json` files:
 
 - `firmware/diagrams/base/`: control base, can be simulated. Run `pio run -e base`, then in VS Code run "Wokwi: Select Config File" → `diagrams/base/wokwi.toml`, then "Wokwi: Start Simulator".
-- `firmware/diagrams/meeple/`: meeple, **wiring only**. Wokwi has no ESP8266/ESP-01, PN532, LiPo or regulator part, so these are custom chips (`*.chip.json` / `*.chip.c`) that only show pins. To view it, open a new project on wokwi.com and paste `diagram.json` plus the 4 chip files.
+- `firmware/diagrams/meeple/`: meeple, **wiring only**. Wokwi has no ESP8266/ESP-01, PN532 or USB adapter part, so these are custom chips (`*.chip.json` / `*.chip.c`) that only show pins. To view it, open a new project on wokwi.com and paste `diagram.json` plus the chip files.
 
 `src/<env>/pins.h` must stay in sync with its diagram.
 
@@ -27,20 +27,20 @@ The backpack pulls SDA/SCL up to 5 V. Most boards work like this, but to be safe
 
 ## Meeple (ESP-01)
 
+Schematic: `firmware/diagrams/meeple/meeple.svg`. Follows the lab kit's proposed schema (`docs/LAB_Kit_2627.pdf`, p. 12).
+
 | ESP-01 pin | Connects to | Notes |
 | --- | --- | --- |
-| VCC | 3.3 V (LDO out) | |
-| GND | GND | |
-| CH_PD (EN) | 1 kΩ → 3.3 V | must be high to run |
-| RST | 1 kΩ → 3.3 V | |
-| GPIO0 | PN532 SDA, 1 kΩ → 3.3 V | pull-up also keeps GPIO0 high at boot |
-| GPIO2 | PN532 SCL, 1 kΩ → 3.3 V | pull-up also keeps GPIO2 high at boot |
+| VCC | 3V3 rail | |
+| GND | GND rail | |
+| CH_PD (EN) | 3V3 rail (wire) | must be high to run |
+| RST | 3V3 rail (wire) | |
+| GPIO0 | PN532 SDA (labelled RXD) | no external pull-up: the ESP8266 internal pull-ups keep it high at boot and Wire enables INPUT_PULLUP |
+| GPIO2 | PN532 SCL (labelled TXD) | same |
 | GPIO3 (RX) | 1 kΩ → LED → GND | so Serial runs TX-only |
-| TX | free | debug output |
+| TX | adapter socket TX hole | serial monitor only |
 
-Power: LiPo 1S → slide switch → **AP2112K-3.3** (600 mA, low dropout; an AMS1117 drops too much at LiPo voltage) → 3.3 V rail for the ESP-01 and the PN532.
+Power: the OPEN-SMART USB to ESP-01 adapter (powerbank or laptop USB), used only as a 3.3 V supply and serial monitor. The ESP-01 sits on the breadboard, **not** in the adapter: the adapter's CH340 drives the ESP's RX pin, which is the LED pin. Jumper the adapter socket's 3V3, GND and TX holes; leave the others empty.
 
-- Put a 470 µF electrolytic + 100 nF across the ESP-01 VCC/GND (Wi-Fi peaks of about 300 mA). Wokwi has no capacitor part, so they are missing from the diagram.
-- Set the PN532 module to **I2C** with its mode switches (Elechouse V3: SW1 = ON, SW2 = OFF).
-- Charging (e.g. a TP4056 module) is not in the diagram yet.
-- Flashing: pull GPIO0 low at boot (use a USB ESP-01 programmer).
+- PN532 V3: mode switches SW1 = ON, SW2 = OFF (I2C). On our boards the I2C pins are labelled TXD/RXD: **RXD = SDA → GPIO0, TXD = SCL → GPIO2** (the opposite of some online pinouts).
+- Flashing: put the ESP-01 in the adapter, slide its switch to PROG (unplug first), plug in, `pio run -e meeple -t upload`. Back to UART + breadboard to run.

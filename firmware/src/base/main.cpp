@@ -1,39 +1,27 @@
-// Hardware smoke test for the control base: LCD, button, buzzer, LED.
-// Press the button -> short beep and the LED toggles.
+// Control base for Snakes & Ladders: Hot or Cold.
+// MQTT contract: docs/wire-schemas.md. Each concern runs in its own FreeRTOS task:
+//   net   (core 0) Wi-Fi + MQTT, the only task touching PubSubClient
+//   input (core 1) button debounce -> short/long publish requests
+//   sound (core 1) event melodies + local hot/cold beeping
+//   ui    (core 1) LCD + turn LED
+// Tasks share state through state.h (mutex) and talk via queues.
 #include <Arduino.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include "pins.h"
-
-LiquidCrystal_I2C lcd(LCD_ADDR, LCD_COLS, LCD_ROWS);
+#include "input.h"
+#include "net.h"
+#include "sound.h"
+#include "state.h"
+#include "ui.h"
 
 void setup() {
   Serial.begin(115200);
-  pinMode(PIN_BUTTON, INPUT_PULLUP);
-  pinMode(PIN_LED, OUTPUT);
-
-  Wire.begin(PIN_SDA, PIN_SCL);
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("S&L base");
-  lcd.setCursor(0, 1);
-  lcd.print("press button");
+  Serial.println("\n[base] boot");
+  stateInit();
+  soundStart();  // before net: incoming events push into the sound queue
+  uiStart();
+  netStart();
+  inputStart();  // last: it publishes through net's queue
 }
 
 void loop() {
-  static bool led = false;
-  static bool lastPressed = false;
-
-  bool pressed = digitalRead(PIN_BUTTON) == LOW;
-  if (pressed && !lastPressed) {
-    led = !led;
-    digitalWrite(PIN_LED, led);
-    tone(PIN_BUZZER, 2000, 80);
-    lcd.setCursor(0, 1);
-    lcd.print(led ? "LED on      " : "LED off     ");
-    Serial.println("button");
-  }
-  lastPressed = pressed;
-  delay(20);  // crude debounce
+  vTaskDelete(nullptr);  // all work happens in the tasks above
 }

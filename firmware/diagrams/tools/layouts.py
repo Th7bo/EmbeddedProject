@@ -58,11 +58,7 @@ def meeple():
     d.wire("bb:tp.2", "bb:bp.2", "red")
     d.wire("bb:tn.3", "bb:bn.3", "black")
 
-    # Pull-ups, standing from the top + rail into row c: EN col 26, RST col 24, SDA col 10, SCL col 12
-    for rid, col, k in [("r_sda", 10, 8), ("r_scl", 12, 10), ("r_rst", 24, 20), ("r_en", 26, 21)]:
-        d.place("wokwi-resistor", rid, "1", f"tp.{k}", rotate=90, dx=0.8, dy=-0.45, attrs={"value": "1000"})
-        d.seat(rid, "1", f"tp.{k}"); d.seat(rid, "2", f"{col}t.c")
-        d.wire(f"bb:{col}t.e", f"bb:{col}b.f", "orange")  # bridge the gap
+    # No external I2C pull-ups (lab kit schema): Wire enables the ESP8266 internal pull-ups on SDA/SCL
 
     # LED: anode col 9, cathode col 8; 1k stands across the gap in col 9 (b -> f)
     d.place("wokwi-led", "led", "A", "9t.a", attrs={"color": "blue"})
@@ -75,8 +71,8 @@ def meeple():
     esp = chip_def(["GND", "GPIO2", "GPIO0", "RX", "TX", "CH_PD", "RST", "VCC"])
     d.part("chip-esp01", "esp", 158, 240, geo=esp)
     for pin, to, color in [("GND", "bn.11", "black"), ("GPIO2", "12b.j", "blue"), ("GPIO0", "10b.j", "green"),
-                           ("RX", "9b.j", "purple"), ("VCC", "bp.19", "red"), ("RST", "24b.j", "gold"),
-                           ("CH_PD", "26b.j", "gold")]:
+                           ("RX", "9b.j", "purple"), ("VCC", "bp.19", "red"), ("RST", "bp.20", "red"),
+                           ("CH_PD", "bp.21", "red")]:  # RST + CH_PD straight to 3V3
         d.wire(f"esp:{pin}", f"bb:{to}", color, ("x", d.hole(to)[0]))
 
     # PN532 right of the breadboard (I2C header: GND VCC SDA SCL); SDA lines up with row g
@@ -87,22 +83,14 @@ def meeple():
     d.wire("nfc:VCC", "bb:tp.24", "red", ("x", d.hole("tp.24")[0]))
     d.wire("nfc:GND", "bb:tn.25", "black", ("x", d.hole("tn.25")[0]))
 
-    # Power: LiPo -> switch -> LDO -> bottom rails
-    ldo = chip_def(["VIN", "EN", "GND", "VOUT"])
-    d.part("chip-ldo", "ldo", -58, 230, geo=ldo)
-    d.wire("ldo:VOUT", "bb:bp.4", "red", ("x", d.hole("bp.4")[0]))
-    d.wire("ldo:GND", "bb:bn.5", "black", ("x", d.hole("bn.5")[0]))
-    d.wire("ldo:EN", "ldo:VIN", "red", ("x", -66), ("y", d.pt("ldo:VIN")[1]))
-
-    en_y = d.pt("ldo:EN")[1]
-    d.place("wokwi-slide-switch", "sw", "1", (-88, en_y), rotate=180)
-    d.wire("sw:1", "ldo:EN", "red")
-
-    bat = chip_def(["", "", "BAT-", "BAT+"])
-    d.part("chip-lipo", "bat", -135 - bat["size"][0], en_y - 20 - bat["pins"]["BAT+"][1], geo=bat)
-    d.wire("sw:2", "bat:BAT+", "red", ("y", d.pt("bat:BAT+")[1]))
-    bx, by = d.pt("bat:BAT-")
-    d.wire("bat:BAT-", "ldo:GND", "black", ("x", bx + 8), ("y", 300), ("x", 24), ("y", d.pt("ldo:GND")[1]))
+    # Power: OPEN-SMART USB to ESP-01 adapter, used only as 3V3 supply + serial monitor.
+    # ESP-01 is NOT in its socket: the adapter's CH340 would drive RX (= LED pin).
+    usb = chip_def(["", "ESP_TX", "GND", "3V3"])
+    d.part("chip-usbadapter", "usb", -58, 230, geo=usb)
+    d.wire("usb:3V3", "bb:bp.4", "red", ("x", d.hole("bp.4")[0]))
+    d.wire("usb:GND", "bb:bn.5", "black", ("x", d.hole("bn.5")[0]))
+    # ESP-01 TX -> adapter socket TX pin (CH340 RXD) for the serial monitor
+    d.wire("esp:TX", "usb:ESP_TX", "gray", ("x", 240), ("y", 320), ("x", -75), ("y", d.pt("usb:ESP_TX")[1]))
     return d
 
 

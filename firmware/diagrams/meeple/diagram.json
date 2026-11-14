@@ -11,46 +11,6 @@
       "attrs": {}
     },
     {
-      "type": "wokwi-resistor",
-      "id": "r_sda",
-      "top": 35.85,
-      "left": 82.25,
-      "attrs": {
-        "value": "1000"
-      },
-      "rotate": 90
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r_scl",
-      "top": 35.85,
-      "left": 101.45,
-      "attrs": {
-        "value": "1000"
-      },
-      "rotate": 90
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r_rst",
-      "top": 35.85,
-      "left": 216.65,
-      "attrs": {
-        "value": "1000"
-      },
-      "rotate": 90
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r_en",
-      "top": 35.85,
-      "left": 235.85,
-      "attrs": {
-        "value": "1000"
-      },
-      "rotate": 90
-    },
-    {
       "type": "wokwi-led",
       "id": "led",
       "top": 9,
@@ -84,25 +44,10 @@
       "attrs": {}
     },
     {
-      "type": "chip-ldo",
-      "id": "ldo",
+      "type": "chip-usbadapter",
+      "id": "usb",
       "top": 230,
       "left": -58,
-      "attrs": {}
-    },
-    {
-      "type": "wokwi-slide-switch",
-      "id": "sw",
-      "top": 253.11,
-      "left": -113.63,
-      "attrs": {},
-      "rotate": 180
-    },
-    {
-      "type": "chip-lipo",
-      "id": "bat",
-      "top": 219.6,
-      "left": -207,
       "attrs": {}
     }
   ],
@@ -117,94 +62,6 @@
       "bb:tn.3",
       "bb:bn.3",
       "black",
-      []
-    ],
-    [
-      "r_sda:1",
-      "bb:tp.8",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "r_sda:2",
-      "bb:10t.c",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "bb:10t.e",
-      "bb:10b.f",
-      "orange",
-      []
-    ],
-    [
-      "r_scl:1",
-      "bb:tp.10",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "r_scl:2",
-      "bb:12t.c",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "bb:12t.e",
-      "bb:12b.f",
-      "orange",
-      []
-    ],
-    [
-      "r_rst:1",
-      "bb:tp.20",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "r_rst:2",
-      "bb:24t.c",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "bb:24t.e",
-      "bb:24b.f",
-      "orange",
-      []
-    ],
-    [
-      "r_en:1",
-      "bb:tp.21",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "r_en:2",
-      "bb:26t.c",
-      "",
-      [
-        "$bb"
-      ]
-    ],
-    [
-      "bb:26t.e",
-      "bb:26b.f",
-      "orange",
       []
     ],
     [
@@ -289,18 +146,18 @@
     ],
     [
       "esp:RST",
-      "bb:24b.j",
-      "gold",
+      "bb:bp.20",
+      "red",
       [
-        "h16.8"
+        "h15.2"
       ]
     ],
     [
       "esp:CH_PD",
-      "bb:26b.j",
-      "gold",
+      "bb:bp.21",
+      "red",
       [
-        "h36"
+        "h34.4"
       ]
     ],
     [
@@ -332,7 +189,7 @@
       ]
     ],
     [
-      "ldo:VOUT",
+      "usb:3V3",
       "bb:bp.4",
       "red",
       [
@@ -340,7 +197,7 @@
       ]
     ],
     [
-      "ldo:GND",
+      "usb:GND",
       "bb:bn.5",
       "black",
       [
@@ -348,37 +205,14 @@
       ]
     ],
     [
-      "ldo:EN",
-      "ldo:VIN",
-      "red",
+      "esp:TX",
+      "usb:ESP_TX",
+      "gray",
       [
-        "h-8",
-        "v-9.6"
-      ]
-    ],
-    [
-      "sw:1",
-      "ldo:EN",
-      "red",
-      []
-    ],
-    [
-      "sw:2",
-      "bat:BAT+",
-      "red",
-      [
-        "v-20"
-      ]
-    ],
-    [
-      "bat:BAT-",
-      "ldo:GND",
-      "black",
-      [
-        "h8",
-        "v56.4",
-        "h151",
-        "v-46"
+        "h10",
+        "v36.8",
+        "h-315",
+        "v-66"
       ]
     ]
   ],
