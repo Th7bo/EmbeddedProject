@@ -27,92 +27,98 @@ PubSubClient g_mqtt(g_wifi);
 
 char g_mac[13];
 char g_clientId[24];
-char t_online[40], t_button[40], t_status[40], t_event[40];
-const char* T_GAME = TOPIC_PREFIX "game/state";
+char t_online[40], t_button[40];
+const char* T_STATE = TOPIC_PREFIX "game/state";
+const char* T_EVENT = TOPIC_PREFIX "game/event";
 const char* T_CTRL = TOPIC_PREFIX "ctrl/online";
+
+// State JSON with 4 players is ~350 bytes; PubSubClient drops anything larger
+// than its buffer silently, so leave plenty of margin.
+constexpr uint16_t MQTT_BUFFER = 1024;
+constexpr uint32_t FLASH_MS = 2000;
 
 void setFlash(const char* text) {
   StateLock s;
   strlcpy(s->flash, text, sizeof(s->flash));
-  s->flashUntil = millis() + 2000;
+  s->flashUntil = millis() + FLASH_MS;
 }
 
 int intOrNone(JsonVariantConst v) { return v.is<int>() ? v.as<int>() : NONE; }
 
-void onStatus(const JsonDocument& doc) {
-  BaseStatus st;
-  st.valid = true;
-  st.p = doc["p"] | 0;
-  st.hp = doc["hp"] | 0;
-  st.cell = intOrNone(doc["cell"]);
-  st.roll = intOrNone(doc["roll"]);
-  st.target = intOrNone(doc["target"]);
-  st.dist = intOrNone(doc["dist"]);
-  st.turn = doc["turn"] | false;
-  st.skip = doc["skip"] | false;
-  st.phase = phaseFromString(doc["phase"] | "");
-  StateLock s;
-  s->status = st;
-}
-
-void onGame(const JsonDocument& doc) {
+void onState(const JsonDocument& doc) {
   GameState g;
+  g.valid = true;
   const char* state = doc["state"] | "";
   g.state = !strcmp(state, "lobby")      ? Game::Lobby
             : !strcmp(state, "running")  ? Game::Running
             : !strcmp(state, "finished") ? Game::Finished
                                          : Game::Unknown;
-  g.players = doc["players"].as<JsonArrayConst>().size();
+  g.phase = phaseFromString(doc["phase"] | "");
   g.turn = intOrNone(doc["turn"]);
+  g.roll = intOrNone(doc["roll"]);
+  g.target = intOrNone(doc["target"]);
+  g.dist = intOrNone(doc["dist"]);
+  g.cell = intOrNone(doc["cell"]);
+  g.joining = intOrNone(doc["joining"]);
   g.winner = intOrNone(doc["winner"]);
+  g.paused = doc["paused"] | false;
+  for (JsonObjectConst pl : doc["players"].as<JsonArrayConst>()) {
+    if (g.nPlayers >= MAX_PLAYERS) break;
+    PlayerInfo& pi = g.players[g.nPlayers++];
+    pi.p = pl["p"] | 0;
+    pi.hp = pl["hp"] | 0;
+    pi.cell = intOrNone(pl["cell"]);
+    pi.skip = pl["skip"] | false;
+    pi.on = pl["on"] | false;
+  }
   StateLock s;
   s->game = g;
 }
 
 void onEvent(const JsonDocument& doc) {
   const char* e = doc["e"] | "";
-  char buf[17];
+  int p = doc["p"] | 0;
+  char buf[FLASH_LEN + 1];
+  // Every flash fits the 21-column line; snprintf clips just in case.
   if (!strcmp(e, "turn")) {
     soundPlay(Sound::Turn);
-    setFlash("Your turn!");
+    snprintf(buf, sizeof(buf), "P%d's turn!", p);
   } else if (!strcmp(e, "roll")) {
     int n = doc["n"] | 0;
     soundPlay(Sound::Roll, n);
-    snprintf(buf, sizeof(buf), "You rolled %d!", n);
-    setFlash(buf);
+    snprintf(buf, sizeof(buf), "P%d rolled %d!", p, n);
   } else if (!strcmp(e, "reached")) {
     soundPlay(Sound::Reached);
-    setFlash("Target reached!");
+    snprintf(buf, sizeof(buf), "P%d reached target!", p);
   } else if (!strcmp(e, "wrong")) {
     soundPlay(Sound::Wrong);
-    setFlash("Wrong cell!");
+    snprintf(buf, sizeof(buf), "P%d: wrong cell!", p);
   } else if (!strcmp(e, "ladder")) {
     soundPlay(Sound::Ladder);
     snprintf(buf, sizeof(buf), "Ladder! go to %d", doc["to"] | 0);
-    setFlash(buf);
   } else if (!strcmp(e, "snake")) {
     soundPlay(Sound::Snake);
     snprintf(buf, sizeof(buf), "Snake! go to %d", doc["to"] | 0);
-    setFlash(buf);
   } else if (!strcmp(e, "hp_lost")) {
     soundPlay(Sound::HpLost);
-    setFlash("Lost 1 HP!");
+    snprintf(buf, sizeof(buf), "P%d lost 1 HP!", p);
   } else if (!strcmp(e, "hp_zero")) {
     soundPlay(Sound::HpZero);
-    setFlash("0 HP: skip turn");
+    snprintf(buf, sizeof(buf), "P%d 0 HP: skips next", p);
   } else if (!strcmp(e, "turn_end")) {
     soundPlay(Sound::TurnEnd);
-    setFlash("Turn over");
-  } else if (!strcmp(e, "paired")) {
-    soundPlay(Sound::Paired);
-    setFlash("Paired!");
+    snprintf(buf, sizeof(buf), "P%d turn over", p);
+  } else if (!strcmp(e, "joined")) {
+    soundPlay(Sound::Joined);
+    snprintf(buf, sizeof(buf), "P%d joined!", p);
   } else if (!strcmp(e, "win")) {
     soundPlay(Sound::Win);
-    snprintf(buf, sizeof(buf), "Player %d wins!", doc["p"] | 0);
-    setFlash(buf);
+    snprintf(buf, sizeof(buf), "P%d wins!!!", p);
   } else {
     Serial.printf("[mqtt] unknown event '%s'\n", e);
+    return;
   }
+  setFlash(buf);
 }
 
 void onMessage(char* topic, byte* payload, unsigned int len) {
@@ -125,8 +131,14 @@ void onMessage(char* topic, byte* payload, unsigned int len) {
     return;
   }
 
-  // Deleting a retained message delivers an empty payload; nothing to parse.
-  if (len == 0) return;
+  // Deleting a retained message delivers an empty payload: forget the game.
+  if (len == 0) {
+    if (!strcmp(topic, T_STATE)) {
+      StateLock s;
+      s->game = GameState{};
+    }
+    return;
+  }
 
   JsonDocument doc;
   DeserializationError err = deserializeJson(doc, payload, len);
@@ -134,9 +146,8 @@ void onMessage(char* topic, byte* payload, unsigned int len) {
     Serial.printf("[mqtt] bad JSON on %s: %s\n", topic, err.c_str());
     return;
   }
-  if (!strcmp(topic, t_status)) onStatus(doc);
-  else if (!strcmp(topic, t_event)) onEvent(doc);
-  else if (!strcmp(topic, T_GAME)) onGame(doc);
+  if (!strcmp(topic, T_STATE)) onState(doc);
+  else if (!strcmp(topic, T_EVENT)) onEvent(doc);
 }
 
 void setLinks(bool wifi, bool mqtt) {
@@ -153,9 +164,8 @@ bool mqttConnect() {
     return false;
   }
   g_mqtt.publish(t_online, "1", true);
-  g_mqtt.subscribe(t_status, 1);
-  g_mqtt.subscribe(t_event, 1);
-  g_mqtt.subscribe(T_GAME, 1);
+  g_mqtt.subscribe(T_STATE, 1);
+  g_mqtt.subscribe(T_EVENT, 1);
   g_mqtt.subscribe(T_CTRL, 1);
   Serial.println("[mqtt] connected");
   return true;
@@ -245,13 +255,11 @@ void netStart() {
   snprintf(g_clientId, sizeof(g_clientId), "snl-base-%s", g_mac);
   snprintf(t_online, sizeof(t_online), TOPIC_PREFIX "base/%s/online", g_mac);
   snprintf(t_button, sizeof(t_button), TOPIC_PREFIX "base/%s/button", g_mac);
-  snprintf(t_status, sizeof(t_status), TOPIC_PREFIX "base/%s/status", g_mac);
-  snprintf(t_event, sizeof(t_event), TOPIC_PREFIX "base/%s/event", g_mac);
   Serial.printf("[net] device id %s\n", g_mac);
 
   g_mqtt.setServer(MQTT_HOST, MQTT_PORT);
   g_mqtt.setKeepAlive(MQTT_KEEPALIVE_S);
-  g_mqtt.setBufferSize(512);
+  g_mqtt.setBufferSize(MQTT_BUFFER);
   g_mqtt.setSocketTimeout(2);  // bounds how long a dead broker can stall this task
   g_mqtt.setCallback(onMessage);
 

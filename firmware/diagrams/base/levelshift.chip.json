@@ -1,0 +1,6 @@
+{
+  "name": "Logic level converter 3.3V <-> 5V (4 ch, BSS138)",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["LV1", "LV2", "LV", "GND", "LV3", "LV4", "HV4", "HV3", "GND2", "HV", "HV2", "HV1"],
+  "controls": []
+}

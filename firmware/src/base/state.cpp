@@ -19,9 +19,9 @@ Shared stateSnapshot() {
 Phase phaseFromString(const char* s) {
   if (!s) return Phase::Unknown;
   static const struct { const char* name; Phase phase; } map[] = {
-      {"unpaired", Phase::Unpaired}, {"pairing", Phase::Pairing}, {"wait", Phase::Wait},
-      {"roll", Phase::Roll},         {"move", Phase::Move},       {"slide", Phase::Slide},
-      {"climb", Phase::Climb},       {"done", Phase::Done},
+      {"join", Phase::Join},   {"pairing", Phase::Pairing}, {"setup", Phase::Setup}, {"roll", Phase::Roll},
+      {"move", Phase::Move},   {"climb", Phase::Climb},     {"slide", Phase::Slide},
+      {"over", Phase::Over},
   };
   for (const auto& m : map)
     if (strcmp(s, m.name) == 0) return m.phase;

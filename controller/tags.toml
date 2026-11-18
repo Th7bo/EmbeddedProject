@@ -1,3 +1,19 @@
 # RFID tag UID -> board cell (WP4). Fill in with `uv run python -m snl.learn`.
 # UIDs are uppercase hex without separators, exactly as the meeple publishes them.
 [tags]
+"043493AE872681" = 1
+"04628CAE872681" = 2
+"04196FAE872681" = 3
+"042A52AE872681" = 4
+"044E4CAE872681" = 5
+"046569AE872681" = 6
+"042D87AE872681" = 7
+"04E899AE872681" = 8
+"04B3A1AE872681" = 9
+"04C57DAE872681" = 10
+"04715FAE872681" = 11
+"04F842AE872681" = 12
+"042D39AE872681" = 13
+"049C59AE872681" = 14
+"044578AE872681" = 15
+"0464A6AE872681" = 16

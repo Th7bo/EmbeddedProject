@@ -61,19 +61,22 @@ void playEvent(const SoundReq& r) {
       noTone(PIN_BUZZER);
       break;
     case Sound::TurnEnd: PLAY({1000, 60}); break;
-    case Sound::Paired:  PLAY({1047, 90}, {1568, 160}); break;                 // C6 G6
+    case Sound::Joined:  PLAY({1047, 90}, {1568, 160}); break;                 // C6 G6
     case Sound::Win:
       PLAY({523, 120}, {659, 120}, {784, 120}, {1047, 250}, {0, 60}, {784, 120}, {1047, 400});
       break;
   }
 }
 
-// Hot/cold beeping only while it is our turn and the player is walking.
+// Hot/cold beeping (wire-schemas §4.2): only while a game is running, the
+// active player is walking (move/climb/slide) and the game is not paused.
+// One shared base, so it beeps for whoever's turn it is.
 int activeDist(const Shared& s) {
-  if (!s.mqttUp || s.ctrl == Online::No || !s.status.valid || !s.status.turn) return NONE;
-  Phase ph = s.status.phase;
-  if (ph != Phase::Move && ph != Phase::Slide && ph != Phase::Climb) return NONE;
-  return s.status.dist;
+  const GameState& g = s.game;
+  if (!s.mqttUp || s.ctrl == Online::No || !g.valid) return NONE;
+  if (g.state != Game::Running || g.paused) return NONE;
+  if (g.phase != Phase::Move && g.phase != Phase::Climb && g.phase != Phase::Slide) return NONE;
+  return g.dist;
 }
 
 void soundTask(void*) {

@@ -1,0 +1,6 @@
+{
+  "name": "ADM12864H 128x64 LCD + SparkFun Serial Graphic LCD backpack",
+  "author": "Snakes & Ladders: Hot or Cold",
+  "pins": ["RX", "TX", "VIN", "GND", "", "", "", ""],
+  "controls": []
+}

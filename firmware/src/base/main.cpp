@@ -3,7 +3,7 @@
 //   net   (core 0) Wi-Fi + MQTT, the only task touching PubSubClient
 //   input (core 1) button debounce -> short/long publish requests
 //   sound (core 1) event melodies + local hot/cold beeping
-//   ui    (core 1) LCD + turn LED
+//   ui    (core 1) 128x64 serial graphic LCD + turn LED
 // Tasks share state through state.h (mutex) and talk via queues.
 #include <Arduino.h>
 #include "input.h"

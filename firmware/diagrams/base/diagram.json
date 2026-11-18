@@ -56,13 +56,18 @@
       }
     },
     {
-      "type": "wokwi-lcd1602",
-      "id": "lcd",
-      "top": 19,
+      "type": "chip-levelshift",
+      "id": "lv",
+      "top": 75.0,
       "left": 520,
-      "attrs": {
-        "pins": "i2c"
-      }
+      "attrs": {}
+    },
+    {
+      "type": "chip-glcd",
+      "id": "lcd",
+      "top": 75.0,
+      "left": 680,
+      "attrs": {}
     }
   ],
   "connections": [
@@ -204,31 +209,56 @@
       []
     ],
     [
+      "esp:17",
+      "lv:LV1",
+      "orange",
+      []
+    ],
+    [
+      "lv:HV1",
+      "lcd:RX",
+      "orange",
+      []
+    ],
+    [
       "esp:GND.3",
+      "lv:GND",
+      "black",
+      [
+        "h29.24",
+        "v67.2"
+      ]
+    ],
+    [
+      "lv:GND2",
       "lcd:GND",
       "black",
       []
     ],
     [
-      "esp:18",
-      "lcd:SDA",
-      "green",
+      "lv:HV",
+      "lcd:VIN",
+      "red",
       []
     ],
     [
-      "esp:5",
-      "lcd:SCL",
-      "blue",
-      []
+      "esp:3V3",
+      "lv:LV",
+      "red",
+      [
+        "v-38.4",
+        "h140.39",
+        "v153.6"
+      ]
     ],
     [
       "esp:5V",
-      "lcd:VCC",
+      "lv:HV",
       "red",
       [
-        "v68.8",
-        "h130.39",
-        "v-174.5"
+        "v48.8",
+        "h250.39",
+        "v-106.4"
       ]
     ]
   ],

@@ -4,81 +4,152 @@
   "editor": "wokwi",
   "parts": [
     {
-      "type": "wokwi-breadboard-half",
+      "type": "wokwi-breadboard-mini",
       "id": "bb",
       "top": 0,
       "left": 0,
       "attrs": {}
     },
     {
+      "type": "chip-esp01",
+      "id": "esp",
+      "top": 79.4,
+      "left": 66.0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_led",
+      "top": 54.95,
+      "left": 102.2,
+      "attrs": {
+        "value": "1000"
+      }
+    },
+    {
       "type": "wokwi-led",
       "id": "led",
       "top": 9,
-      "left": 77.8,
+      "left": 135.4,
       "attrs": {
         "color": "blue"
       }
     },
     {
-      "type": "wokwi-resistor",
-      "id": "r_led",
-      "top": 84.0,
-      "left": 73.45,
-      "attrs": {
-        "value": "1000"
-      },
-      "rotate": 90
-    },
-    {
-      "type": "chip-esp01",
-      "id": "esp",
-      "top": 240,
-      "left": 158,
-      "attrs": {}
-    },
-    {
       "type": "chip-pn532",
       "id": "nfc",
-      "top": 94.2,
-      "left": 360,
+      "top": -36.4,
+      "left": 249.6,
       "attrs": {}
     },
     {
       "type": "chip-usbadapter",
       "id": "usb",
-      "top": 230,
-      "left": -58,
+      "top": 200,
+      "left": 60,
       "attrs": {}
     }
   ],
   "connections": [
     [
-      "bb:tp.2",
-      "bb:bp.2",
+      "bb:16b.f",
+      "bb:16t.e",
       "red",
       []
     ],
     [
-      "bb:tn.3",
-      "bb:bn.3",
+      "bb:17b.f",
+      "bb:17t.e",
       "black",
       []
     ],
     [
-      "led:A",
-      "bb:9t.a",
+      "esp:GND",
+      "bb:6t.e",
       "",
       [
         "$bb"
       ]
     ],
     [
-      "led:C",
-      "bb:8t.a",
+      "esp:GPIO2",
+      "bb:7t.e",
       "",
       [
         "$bb"
       ]
+    ],
+    [
+      "esp:GPIO0",
+      "bb:8t.e",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "esp:RX",
+      "bb:9t.e",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "esp:TX",
+      "bb:6b.f",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "esp:CH_PD",
+      "bb:7b.f",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "esp:RST",
+      "bb:8b.f",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "esp:VCC",
+      "bb:9b.f",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:6t.d",
+      "bb:17t.d",
+      "black",
+      []
+    ],
+    [
+      "bb:7b.g",
+      "bb:16b.g",
+      "red",
+      []
+    ],
+    [
+      "bb:8b.h",
+      "bb:16b.h",
+      "red",
+      []
+    ],
+    [
+      "bb:9b.i",
+      "bb:16b.i",
+      "red",
+      []
     ],
     [
       "r_led:1",
@@ -90,129 +161,90 @@
     ],
     [
       "r_led:2",
-      "bb:9b.f",
+      "bb:15t.b",
       "",
       [
         "$bb"
       ]
     ],
     [
-      "bb:8t.d",
-      "bb:tn.4",
+      "led:A",
+      "bb:15t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "led:C",
+      "bb:14t.a",
+      "",
+      [
+        "$bb"
+      ]
+    ],
+    [
+      "bb:14t.c",
+      "bb:17t.c",
       "black",
-      [
-        "h-30.4"
-      ]
-    ],
-    [
-      "esp:GND",
-      "bb:bn.11",
-      "black",
-      [
-        "h-8.8"
-      ]
-    ],
-    [
-      "esp:GPIO2",
-      "bb:12b.j",
-      "blue",
-      [
-        "h-26.4"
-      ]
-    ],
-    [
-      "esp:GPIO0",
-      "bb:10b.j",
-      "green",
-      [
-        "h-45.6"
-      ]
-    ],
-    [
-      "esp:RX",
-      "bb:9b.j",
-      "purple",
-      [
-        "h-55.2"
-      ]
-    ],
-    [
-      "esp:VCC",
-      "bb:bp.19",
-      "red",
-      [
-        "h5.6"
-      ]
-    ],
-    [
-      "esp:RST",
-      "bb:bp.20",
-      "red",
-      [
-        "h15.2"
-      ]
-    ],
-    [
-      "esp:CH_PD",
-      "bb:bp.21",
-      "red",
-      [
-        "h34.4"
-      ]
-    ],
-    [
-      "nfc:SDA",
-      "bb:10b.g",
-      "green",
       []
     ],
     [
+      "bb:7t.a",
       "nfc:SCL",
-      "bb:12b.h",
       "blue",
-      []
+      [
+        "v-73"
+      ]
+    ],
+    [
+      "bb:8t.a",
+      "nfc:SDA",
+      "green",
+      [
+        "v-63.4"
+      ]
     ],
     [
       "nfc:VCC",
-      "bb:tp.24",
+      "bb:16t.a",
       "red",
       [
-        "h-66.8"
+        "h-79.6"
       ]
     ],
     [
       "nfc:GND",
-      "bb:tn.25",
+      "bb:17t.a",
       "black",
       [
-        "h-57.2"
+        "h-70"
       ]
     ],
     [
       "usb:3V3",
-      "bb:bp.4",
+      "bb:16b.j",
       "red",
       [
-        "h48.8"
+        "h38"
       ]
     ],
     [
       "usb:GND",
-      "bb:bn.5",
+      "bb:17b.j",
       "black",
       [
-        "h58.4"
+        "h47.6"
       ]
     ],
     [
-      "esp:TX",
+      "bb:6b.j",
       "usb:ESP_TX",
       "gray",
       [
-        "h10",
-        "v36.8",
-        "h-315",
-        "v-66"
+        "v33.4",
+        "h-34",
+        "v34"
       ]
     ]
   ],

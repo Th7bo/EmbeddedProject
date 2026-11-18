@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snakes &amp; Ladders: Hot or Cold — Controller</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --panel: #fffdf8; --ink: #22201c; --muted: #7a746a; --line: #e4ded2;
+    --cell-a: #fbf7ee; --cell-b: #f1eadb; --ladder: #2f8f5b; --snake: #c8443b;
+    --p1: #e5484d; --p2: #3e63dd; --p3: #2f9e6a; --p4: #e09b16;
+    --hot: #e5484d; --cold: #3e8edd; --ok: #2f9e6a; --warn: #e09b16;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17161a; --panel: #211f25; --ink: #ece9e3; --muted: #9a958c; --line: #34313a;
+      --cell-a: #2a2830; --cell-b: #24222a; --ladder: #4fbf86; --snake: #ef6a60;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
+  header h1 span { color: var(--muted); font-weight: 500; }
+  .pill { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--line); color: var(--muted); }
+  .pill.ok { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .pill.bad { background: color-mix(in srgb, var(--hot) 18%, transparent); color: var(--hot); }
+  .pill.warn { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+  .spacer { flex: 1; }
+  main { display: grid; grid-template-columns: minmax(320px, 560px) minmax(300px, 1fr); gap: 18px; padding: 18px 20px; max-width: 1200px; margin: 0 auto; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 14px 16px; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+  .stack { display: grid; gap: 14px; align-content: start; }
+  #board svg { width: 100%; height: auto; display: block; }
+  .now { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+  .die { width: 64px; height: 64px; border-radius: 12px; border: 2px solid var(--line); display: grid; place-items: center;
+         font-size: 30px; font-weight: 800; background: var(--bg); }
+  .doing { font-size: 18px; font-weight: 700; }
+  .sub { color: var(--muted); margin-top: 2px; }
+  .meter { margin-top: 10px; height: 10px; border-radius: 99px; background: linear-gradient(90deg, var(--hot), #f0a33a, #cfd6e0, var(--cold)); position: relative; }
+  .meter i { position: absolute; top: -4px; width: 4px; height: 18px; border-radius: 3px; background: var(--ink); transition: left .25s; }
+  .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 7px 4px; border-top: 1px solid var(--line); vertical-align: middle; }
+  tr:first-child td { border-top: 0; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 6px; }
+  .active td { background: color-mix(in srgb, var(--warn) 12%, transparent); }
+  .hearts { letter-spacing: 1px; white-space: nowrap; }
+  .tag { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
+  .tag.skip { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+  .tag.off { background: color-mix(in srgb, var(--hot) 18%, transparent); color: var(--hot); }
+  .muted { color: var(--muted); }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+  .log { max-height: 260px; overflow: auto; margin: 0; padding: 0; list-style: none; }
+  .log li { padding: 5px 0; border-top: 1px solid var(--line); display: flex; gap: 8px; }
+  .log li:first-child { border-top: 0; }
+  .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  button { font: inherit; font-weight: 700; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line);
+           background: var(--bg); color: var(--ink); cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .taggrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .taggrid div { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
+  .taggrid div.done { background: color-mix(in srgb, var(--ok) 14%, transparent); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .taggrid b { display: block; font-size: 14px; }
+  select { font: inherit; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .picker { display: inline-flex; gap: 6px; align-items: center; margin-left: 6px; }
+  .picker button { padding: 4px 10px; }
+  @keyframes pulse { 0%, 100% { r: 15; } 50% { r: 18; } }
+  .token-active { animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Snakes &amp; Ladders <span>Hot or Cold — controller</span></h1>
+  <span id="state" class="pill">…</span>
+  <span class="spacer"></span>
+  <span id="link" class="pill">connecting…</span>
+</header>
+<main>
+  <div class="stack">
+    <div class="card" id="board"><svg viewBox="0 0 440 440" aria-label="Board"></svg></div>
+    <div class="card">
+      <h2>Button (same as the base)</h2>
+      <div class="buttons">
+        <button class="primary" onclick="press('short')">Short press</button>
+        <button onclick="press('long')">Long press (hold)</button>
+      </div>
+      <div class="hint">Short: add player / roll. Long: start, end turn, new game.</div>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="card">
+      <h2>Now</h2>
+      <div class="now">
+        <div class="die" id="die">–</div>
+        <div><div class="doing" id="doing">…</div><div class="sub" id="detail"></div></div>
+      </div>
+      <div id="meterbox" hidden>
+        <div class="meter"><i id="needle"></i></div>
+        <div class="meter-labels"><span>hot (on target)</span><span id="distlabel"></span><span>cold</span></div>
+      </div>
+    </div>
+    <div class="card"><h2>Players</h2><table id="players"></table></div>
+    <div class="card"><h2>Devices</h2><table id="devices"></table></div>
+    <div class="card"><h2>Board tags <span id="tagcount"></span></h2>
+      <div id="scanbox" hidden>
+        <div style="font-weight:700;margin-bottom:6px">Scanned, not mapped yet <span class="muted" style="font-weight:400">(in scan order)</span></div>
+        <table id="scanned"></table>
+        <div class="buttons" style="margin:10px 0 14px"><button class="primary" onclick="saveScanned()">Save all</button>
+          <button onclick="fetch('/scanned/clear',{method:'POST'})">Clear list</button></div>
+      </div>
+      <div id="tags" class="taggrid"></div>
+      <div class="hint">Mapping: put a meeple on cell 1, 2, 3 ... in order; its LED flashes solid when a new tag is caught.
+        Then check the numbers here and Save all. Saved to controller/tags.toml.</div></div>
+    <div class="card"><h2>Events</h2><ul class="log" id="log"></ul></div>
+  </div>
+</main>
+<script>
+const COLORS = ["", "var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)"];
+const EVENT_TEXT = {
+  turn: "turn starts", roll: e => `rolled ${e.n}`, reached: "reached the target", wrong: "wrong cell",
+  ladder: e => `ladder up to ${e.to}`, snake: e => `snake down to ${e.to}`, hp_lost: "lost 1 hp",
+  hp_zero: "0 hp, skips next turn", turn_end: "turn ended", joined: "joined", win: "WINS!"
+};
+const SIZE = 100, PAD = 20;
+
+// Cell 1 bottom-left, zig-zag up to 16 top-left (as in the docx).
+function cellXY(n) {
+  const r = Math.floor((n - 1) / 4), k = (n - 1) % 4;
+  const col = r % 2 === 0 ? k : 3 - k;
+  return [PAD + col * SIZE + SIZE / 2, PAD + (3 - r) * SIZE + SIZE / 2];
+}
+
+function svg(tag, attrs, text) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+function drawBoard(s) {
+  const root = document.querySelector("#board svg");
+  root.replaceChildren();
+  const path = new Set(s.path || []), walked = new Set((s.path || []).slice(0, s.progress || 0));
+  for (let n = 1; n <= 16; n++) {
+    const [x, y] = cellXY(n);
+    let fill = (Math.round((x - PAD) / SIZE) + Math.round((y - PAD) / SIZE)) % 2 ? "var(--cell-a)" : "var(--cell-b)";
+    if (path.has(n)) fill = `color-mix(in srgb, ${COLORS[s.turn] || "var(--warn)"} ${walked.has(n) ? 34 : 16}%, var(--cell-a))`;
+    root.append(svg("rect", { x: x - SIZE / 2, y: y - SIZE / 2, width: SIZE, height: SIZE, fill, stroke: "var(--line)" }));
+    root.append(svg("text", { x: x - 40, y: y - 30, "font-size": 15, "font-weight": 700, fill: "var(--muted)" }, n));
+    if (n === 1) root.append(svg("text", { x: x + 40, y: y - 30, "font-size": 10, "text-anchor": "end", fill: "var(--muted)" }, "START"));
+    if (n === 16) root.append(svg("text", { x: x + 40, y: y - 30, "font-size": 10, "text-anchor": "end", fill: "var(--muted)" }, "FINISH"));
+  }
+  for (const [a, b] of Object.entries(s.ladders || {})) {
+    const [x1, y1] = cellXY(+a), [x2, y2] = cellXY(b);
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy), nx = -dy / len * 9, ny = dx / len * 9;
+    const g = svg("g", { stroke: "var(--ladder)", "stroke-width": 4, "stroke-linecap": "round", opacity: .85 });
+    g.append(svg("line", { x1: x1 + nx, y1: y1 + ny, x2: x2 + nx, y2: y2 + ny }));
+    g.append(svg("line", { x1: x1 - nx, y1: y1 - ny, x2: x2 - nx, y2: y2 - ny }));
+    for (let t = .12; t < .95; t += .16)
+      g.append(svg("line", { x1: x1 + dx * t + nx, y1: y1 + dy * t + ny, x2: x1 + dx * t - nx, y2: y1 + dy * t - ny, "stroke-width": 3 }));
+    root.append(g);
+  }
+  for (const [a, b] of Object.entries(s.snakes || {})) {
+    const [x1, y1] = cellXY(+a), [x2, y2] = cellXY(b);
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1;
+    const d = `M${x1} ${y1} Q ${mx + dy * .35} ${my - dx * .35} ${mx} ${my} T ${x2} ${y2}`;
+    root.append(svg("path", { d, fill: "none", stroke: "var(--snake)", "stroke-width": 7, "stroke-linecap": "round", opacity: .85 }));
+    root.append(svg("circle", { cx: x1, cy: y1, r: 8, fill: "var(--snake)" }));
+  }
+  if (s.target) {
+    const [x, y] = cellXY(s.target);
+    root.append(svg("rect", { x: x - SIZE / 2 + 4, y: y - SIZE / 2 + 4, width: SIZE - 8, height: SIZE - 8, rx: 8,
+      fill: "none", stroke: COLORS[s.turn] || "var(--warn)", "stroke-width": 4, "stroke-dasharray": "8 5" }));
+  }
+  const offsets = [[-18, 12], [18, 12], [-18, 34], [18, 34]];
+  (s.players || []).forEach((p, i) => {
+    if (p.cell == null) return;
+    const [x, y] = cellXY(p.cell), [ox, oy] = offsets[i % 4];
+    const active = s.turn === p.p;
+    root.append(svg("circle", { cx: x + ox, cy: y + oy - 12, r: 15, fill: COLORS[p.p], stroke: "#fff", "stroke-width": 3,
+      class: active ? "token-active" : "", opacity: p.on ? 1 : .4 }));
+    root.append(svg("text", { x: x + ox, y: y + oy - 7, "font-size": 13, "font-weight": 800, "text-anchor": "middle", fill: "#fff" }, `P${p.p}`));
+  });
+}
+
+function nowText(s) {
+  const P = s.turn ? `P${s.turn}` : "";
+  const ph = {
+    join: ["Lobby", (s.players || []).length >= 2 ? "Short press: add player · Long press: start" : "Short press to add a player"],
+    pairing: [`P${s.joining} is joining`, "Put a new meeple on the board"],
+    setup: ["New game", "Put every meeple on cell 1 (long press: start anyway)"],
+    roll: [`${P}: press to roll`, s.cell ? `on cell ${s.cell}` : "meeple not on a cell"],
+    move: [`${P}: walk to cell ${s.target}`, `on ${s.cell ?? "–"} · ${s.dist ?? "–"} steps left`],
+    climb: [`Ladder! ${P} climbs to ${s.target}`, `on ${s.cell ?? "–"} · ${s.dist ?? "–"} steps left`],
+    slide: [`Snake! ${P} slides to ${s.target}`, `on ${s.cell ?? "–"} · ${s.dist ?? "–"} steps left`],
+    over: [`P${s.winner} wins!`, "Long press: back to adding players"],
+  }[s.phase] || ["Waiting for the game", ""];
+  if (s.paused) {
+    const act = (s.players || []).find(p => p.p === s.turn);
+    ph[1] = act && !act.on ? `PAUSED: P${act.p}'s meeple is offline. Long press removes P${act.p}.`
+                           : "PAUSED: the base is offline";
+  }
+  return ph;
+}
+
+function hearts(hp) { return "♥".repeat(hp) + "<span class='muted'>" + "♡".repeat(Math.max(0, 5 - hp)) + "</span>"; }
+
+function render(s) {
+  const st = document.getElementById("state");
+  st.textContent = s.paused ? "paused" : s.state || "…";
+  st.className = "pill " + (s.paused ? "warn" : s.state === "running" ? "ok" : "");
+  drawBoard(s);
+  const [doing, detail] = nowText(s);
+  document.getElementById("doing").textContent = doing;
+  document.getElementById("detail").textContent = detail;
+  document.getElementById("die").textContent = s.roll ?? "–";
+  const box = document.getElementById("meterbox");
+  box.hidden = s.dist == null || !["move", "climb", "slide"].includes(s.phase);
+  if (!box.hidden) {
+    document.getElementById("needle").style.left = `calc(${Math.min(s.dist, 6) / 6 * 100}% - 2px)`;
+    document.getElementById("distlabel").textContent = `${s.dist} step${s.dist === 1 ? "" : "s"} left`;
+  }
+  const meeple = Object.fromEntries((s.meeples || []).filter(m => m.p).map(m => [m.p, m]));
+  document.getElementById("players").innerHTML = (s.players || []).map(p => {
+    const m = meeple[p.p] || {};
+    return `<tr class="${s.turn === p.p ? "active" : ""}">
+      <td><span class="dot" style="background:${COLORS[p.p]}"></span><b>P${p.p}</b>${p.skip ? "<span class='tag skip'>SKIP</span>" : ""}${p.on ? "" : "<span class='tag off'>OFFLINE</span>"}</td>
+      <td>cell <b>${p.cell ?? "–"}</b></td>
+      <td class="hearts">${hearts(p.hp)}</td>
+      <td class="muted mono">${m.batt ? (m.batt / 1000).toFixed(2) + " V" : ""}</td></tr>`;
+  }).join("") || "<tr><td class='muted'>No players yet. Short press to add one.</td></tr>";
+  // Offline devices that are not in the game are leftovers (old retained messages): hide them.
+  const board = s.board_tags || {};
+  const realCell = Object.fromEntries(Object.entries(board).map(([c, u]) => [u, +c]));
+  const free = Array.from({ length: 16 }, (_, i) => i + 1).filter(c => !board[c]);
+  const scanned = (s.scanned || []).filter(u => !u.startsWith("5100"));
+  // Default cell for a tag: its current cell, else what the scan list suggests (never an occupied cell by accident).
+  const suggest = u => realCell[u] ?? (choice[u] ? +choice[u] : free[Math.max(0, scanned.indexOf(u))]);
+  const picker = m => {
+    if (m.tag === "-" || m.tag.startsWith("5100")) return "";  // no tag / simulator tag
+    const pre = suggest(m.tag);
+    const opts = Array.from({ length: 16 }, (_, i) => i + 1)
+      .map(c => `<option value="${c}" ${pre === c ? "selected" : ""}>cell ${c}${board[c] && board[c] !== m.tag ? " (remap)" : ""}</option>`).join("");
+    return `<span class="picker"><select id="pick-${m.mac}">${opts}</select><button onclick="saveTag('${m.tag}','${m.mac}')">${realCell[m.tag] ? "Change" : "Save"}</button></span>`;
+  };
+  const dev = [
+    ...(s.bases || []).filter(b => b.online).map(b => ["base", b.mac, b.online, ""]),
+    ...(s.meeples || []).filter(m => m.online || m.p).map(m => ["meeple", m.mac, m.online,
+      (m.p ? `P${m.p}` : "not in game") + (m.tag !== "-" ? ` · tag ${m.tag}${m.known ? ` (cell ${m.cell})` : " <b style='color:var(--hot)'>UNKNOWN</b>"}` : " · no tag") + picker(m)]),
+  ];
+  // Scanned tags, prefilled with the free cells in scan order; choices survive live updates.
+  document.getElementById("scanbox").hidden = !scanned.length;
+  document.getElementById("scanned").innerHTML = scanned.map((u, i) => {
+    const sel = choice[u] ?? free[i] ?? "";  // same suggestion as suggest() for this row
+    const opts = Array.from({ length: 16 }, (_, k) => k + 1).map(c =>
+      `<option value="${c}" ${+sel === c ? "selected" : ""}>cell ${c}${board[c] ? " (remap)" : ""}</option>`).join("");
+    return `<tr><td class="muted">${i + 1}.</td><td class="mono">${u}</td>
+      <td><select data-uid="${u}" onchange="choice['${u}']=this.value"><option value="">skip</option>${opts}</select></td></tr>`;
+  }).join("");
+  const n = Object.keys(board).length;
+  document.getElementById("tagcount").textContent = `· ${n}/16`;
+  // Same layout as the board: 16 15 14 13 / 9 10 11 12 / 8 7 6 5 / 1 2 3 4
+  document.getElementById("tags").innerHTML = [16, 15, 14, 13, 9, 10, 11, 12, 8, 7, 6, 5, 1, 2, 3, 4]
+    .map(c => `<div class="${board[c] ? "done" : ""}"><b>${c}</b><span class="mono muted">${board[c] || "—"}</span></div>`).join("");
+  document.getElementById("devices").innerHTML = dev.map(([kind, mac, on, info]) =>
+    `<tr><td><span class="dot" style="background:${on ? "var(--ok)" : "var(--muted)"}"></span>${kind}</td>
+     <td class="mono">${mac}</td><td class="muted">${info}</td></tr>`).join("") ||
+    "<tr><td class='muted'>No devices yet</td></tr>";
+  document.getElementById("log").innerHTML = (s.events || []).map(e => {
+    const t = EVENT_TEXT[e.e]; const text = typeof t === "function" ? t(e) : t || e.e;
+    return `<li><span class="muted mono">${e.t}</span><span class="dot" style="background:${COLORS[e.p] || "var(--muted)"}"></span><span><b>P${e.p}</b> ${text}</span></li>`;
+  }).join("") || "<li class='muted'>Nothing yet</li>";
+}
+
+function press(kind) { fetch("/press", { method: "POST", body: kind }); }
+const choice = {};  // uid -> cell picked in the scanned list
+function saveScanned() {
+  const lines = [...document.querySelectorAll("#scanned select")].filter(s => s.value).map(s => `${s.dataset.uid} ${s.value}`);
+  if (lines.length) fetch("/tag", { method: "POST", body: lines.join("\n") });
+}
+function saveTag(uid, mac) { fetch("/tag", { method: "POST", body: `${uid} ${document.getElementById("pick-" + mac).value}` }); }
+
+const link = document.getElementById("link");
+const es = new EventSource("/events");
+es.onopen = () => { link.textContent = "live"; link.className = "pill ok"; };
+es.onerror = () => { link.textContent = "controller unreachable"; link.className = "pill bad"; };
+es.onmessage = ev => render(JSON.parse(ev.data));
+</script>
+</body>
+</html>

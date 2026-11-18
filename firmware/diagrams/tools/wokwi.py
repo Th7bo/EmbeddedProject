@@ -72,16 +72,19 @@ class Diagram:
         self._geo[id_] = (g, left, top, rotate)
         return p
 
-    def breadboard(self, id_, left, top):
-        self.bb = dict(id=id_, left=left, top=top)
-        self.part("wokwi-breadboard-half", id_, left, top,
-                  geo=dict(size=BB_SIZE, pins={}))
+    def breadboard(self, id_, left, top, kind="half"):
+        """kind "half": 30 columns + power rails. "mini": 17 columns, no rails (the meeple's
+        170-hole board; same hole pitch/rows, so hole names work the same)."""
+        self.bb = dict(id=id_, left=left, top=top, kind=kind)
+        size = BB_SIZE if kind == "half" else (col_x(17) + 20, BB_SIZE[1])
+        self.part(f"wokwi-breadboard-{kind}", id_, left, top, geo=dict(size=size, pins={}))
 
     def hole(self, name):
         """'12t.c' / '3b.j' / 'tp.4' -> absolute (x, y)."""
         L, T = self.bb["left"], self.bb["top"]
         a, b = name.split(".")
         if a in RAILS:
+            assert self.bb.get("kind", "half") == "half", "the mini breadboard has no power rails"
             return L + rail_x(int(b)), T + RAILS[a]
         return L + col_x(int(a[:-1])), T + ROWS[b]
 

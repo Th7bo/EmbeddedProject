@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 enum class Sound : uint8_t {
-  Turn, Roll, Reached, Wrong, Ladder, Snake, HpLost, HpZero, TurnEnd, Paired, Win
+  Turn, Roll, Reached, Wrong, Ladder, Snake, HpLost, HpZero, TurnEnd, Joined, Win
 };
 
 struct SoundReq {
