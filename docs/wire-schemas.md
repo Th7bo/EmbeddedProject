@@ -43,7 +43,6 @@ Source of truth for the game rules: `Project_1st_FollowUp_Updated.docx` / the sl
 | --- | --- | --- | --- | --- |
 | `snl/meeple/<mac>/online` | meeple → ctrl | `1` on connect, `0` as Last Will | yes | 0 |
 | `snl/meeple/<mac>/tag` | meeple → ctrl | tag UID or `-` | yes | 0 |
-| `snl/meeple/<mac>/batt` | meeple → ctrl | supply voltage in mV, e.g. `3312` | yes | 0 |
 | `snl/meeple/<mac>/led` | ctrl → meeple | `off` \| `on` \| `slow` \| `fast` | yes | 1 |
 | `snl/base/<mac>/online` | base → ctrl | `1` on connect, `0` as Last Will | yes | 0 |
 | `snl/base/<mac>/button` | base → ctrl | `short` \| `long` | no | 0 |
@@ -67,8 +66,6 @@ Subscriptions:
 - **Removal debounce:** the PN532 occasionally misses a read, so `-` is only published after about 300 ms without a read (3 missed polls of 100 ms). A new UID is published at once.
 - Re-publish the current value right after every (re)connect.
 - The meeple sends the raw UID. The controller maps UID → cell (1–16) with `controller/tags.toml`. An unknown UID is treated as "not a cell".
-
-**`batt`**: supply voltage from `ESP.getVcc()`, on connect and every 60 s. Informational.
 
 **`led`**:
 

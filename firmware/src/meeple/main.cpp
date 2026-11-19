@@ -11,12 +11,9 @@
 #include "config.h"
 #include "pins.h"
 
-ADC_MODE(ADC_VCC);  // ESP.getVcc() reads the supply voltage, A0 is not wired anyway
-
 // Timing
 constexpr uint32_t POLL_TIMEOUT_MS = 100;    // one PN532 read attempt
 constexpr uint8_t TAG_MISSES_FOR_GONE = 3;   // ~300 ms debounce before publishing "-"
-constexpr uint32_t BATT_PERIOD_MS = 60000;
 constexpr uint32_t PN532_RETRY_MS = 2000;
 
 Adafruit_PN532 nfc(-1, -1, &Wire);  // no IRQ / reset lines on the ESP-01
@@ -24,7 +21,7 @@ WiFiClient wifi;
 PubSubClient mqtt(wifi);
 
 String mac;  // lowercase hex, no separators
-String topicOnline, topicTag, topicBatt, topicLed;
+String topicOnline, topicTag, topicLed;
 const char *TOPIC_CTRL_ONLINE = TOPIC_PREFIX "ctrl/online";
 
 enum class LedMode { Off, On, Slow, Fast, Error };
@@ -106,13 +103,6 @@ static void pollTag() {
 
 // ---------------------------------------------------------------- MQTT
 
-static void publishBatt() {
-  if (!mqtt.connected()) return;
-  char mv[8];
-  snprintf(mv, sizeof mv, "%u", ESP.getVcc());
-  mqtt.publish(topicBatt.c_str(), mv, true);
-}
-
 static void onMessage(char *topic, uint8_t *payload, unsigned int len) {
   String msg;
   msg.reserve(len);
@@ -150,7 +140,6 @@ static void mqttMaintain() {
   mqtt.subscribe(topicLed.c_str(), 1);
   mqtt.subscribe(TOPIC_CTRL_ONLINE, 1);
   publishTag();  // controller rebuilds positions from this
-  publishBatt();
 }
 
 // ---------------------------------------------------------------- main
@@ -172,7 +161,6 @@ void setup() {
   String base = String(TOPIC_PREFIX "meeple/") + mac + "/";
   topicOnline = base + "online";
   topicTag = base + "tag";
-  topicBatt = base + "batt";
   topicLed = base + "led";
   Serial.printf("id %s\n", mac.c_str());
 
@@ -186,13 +174,20 @@ void setup() {
 }
 
 void loop() {
-  static uint32_t lastBatt = 0, lastNfcTry = 0;
+  static uint32_t lastNfcTry = 0;
   static bool wifiWas = false;
 
   bool wifiNow = WiFi.status() == WL_CONNECTED;
   if (wifiNow != wifiWas) {
     wifiWas = wifiNow;
     Serial.printf("WiFi %s %s\n", wifiNow ? "up" : "down", wifiNow ? WiFi.localIP().toString().c_str() : "");
+  }
+  // Why it isn't connecting: 1 = network not found (5 GHz only? hotspot hidden?),
+  // 4 = connect failed (password), 6 = wrong password, 7 = disconnected / still trying.
+  static uint32_t lastWifiLog = 0;
+  if (!wifiNow && millis() - lastWifiLog > 5000) {
+    lastWifiLog = millis();
+    Serial.printf("WiFi '%s' status %d\n", WIFI_SSID, WiFi.status());
   }
   mqttMaintain();
 
@@ -203,10 +198,6 @@ void loop() {
     nfcOk = nfcInit();
   }
 
-  if (millis() - lastBatt > BATT_PERIOD_MS) {
-    lastBatt = millis();
-    publishBatt();
-  }
   updateLed();
   delay(1);  // let the Wi-Fi stack run
 }

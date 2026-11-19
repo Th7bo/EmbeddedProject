@@ -28,12 +28,44 @@ fi
 cleanup() { [ -n "$broker_pid" ] && kill "$broker_pid" 2>/dev/null && echo "broker: stopped"; }
 trap cleanup EXIT
 
-# --- the ESPs connect to MQTT_HOST from firmware/include/secrets.h: warn if this PC has another IP
-ip=$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p')
-want=$(sed -n 's/^#define MQTT_HOST "\([^"]*\)".*/\1/p' firmware/include/secrets.h 2>/dev/null || true)
-echo "network: this PC is ${ip:-offline}"
-if [ -n "$want" ] && [ "$want" != "$ip" ]; then
-  echo "WARNING: the ESPs look for the broker at $want (firmware/include/secrets.h)."
+# --- Wi-Fi hotspot on this laptop for the ESPs (SSID + password from firmware/include/secrets.h).
+# A phone hotspot drops devices at ~5 clients, so the laptop is the access point (10.42.0.1).
+# Its Wi-Fi card is then busy: for internet use USB tethering or ethernet.
+# NO_HOTSPOT=1 ./start.sh skips this (e.g. when everything is on another network).
+secrets=firmware/include/secrets.h
+def() { sed -n "s/^#define $1 \"\([^\"]*\)\".*/\1/p" "$secrets" 2>/dev/null || true; }
+ssid=$(def WIFI_SSID); pass=$(def WIFI_PASS); want=$(def MQTT_HOST)
+hs=snl-hotspot
+if [ -z "${NO_HOTSPOT:-}" ]; then
+  [ -n "$ssid" ] && [ -n "$pass" ] || die "WIFI_SSID / WIFI_PASS missing in $secrets"
+  ifname=${HOTSPOT_IF:-$(nmcli -t -f DEVICE,TYPE dev | sed -n 's/^\([^:]*\):wifi$/\1/p' | head -1)}
+  [ -n "$ifname" ] || die "no Wi-Fi interface found (set HOTSPOT_IF)"
+  # (re)create the profile so it always matches secrets.h; 2.4 GHz WPA2, the ESP-01 can't do more
+  nmcli con delete "$hs" >/dev/null 2>&1 || true
+  nmcli con add type wifi ifname "$ifname" con-name "$hs" autoconnect no ssid "$ssid" \
+    802-11-wireless.mode ap 802-11-wireless.band bg 802-11-wireless.channel 6 \
+    wifi-sec.key-mgmt wpa-psk wifi-sec.proto rsn wifi-sec.pairwise ccmp wifi-sec.group ccmp \
+    wifi-sec.psk "$pass" ipv4.method shared ipv4.addresses 10.42.0.1/24 ipv6.method disabled \
+    >/dev/null || die "could not create the hotspot profile"
+  nmcli con up "$hs" >/dev/null || die "hotspot did not start (nmcli con up $hs)"
+  echo "hotspot: '$ssid' on $ifname, laptop is 10.42.0.1"
+  # Fedora firewall: the hotspot zone (nm-shared) only lets DHCP/DNS in, the ESPs need MQTT
+  if command -v firewall-cmd >/dev/null && firewall-cmd --state >/dev/null 2>&1 \
+     && ! firewall-cmd --zone=nm-shared --query-port=1883/tcp >/dev/null 2>&1; then
+    echo "firewall: opening MQTT port 1883 on the hotspot (one time, needs sudo)"
+    sudo firewall-cmd --permanent --zone=nm-shared --add-port=1883/tcp >/dev/null \
+      && sudo firewall-cmd --reload >/dev/null || echo "WARNING: port 1883 still closed, ESPs can't reach the broker"
+  fi
+  stop_hotspot() { nmcli con down "$hs" >/dev/null 2>&1 && echo "hotspot: stopped"; }
+else
+  stop_hotspot() { :; }
+fi
+trap 'cleanup; stop_hotspot' EXIT
+
+# --- the ESPs connect to MQTT_HOST from secrets.h: warn if this PC doesn't have that IP
+echo "network: this PC is $(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | grep -v '^172\.1[78]\.' | paste -sd' ')"
+if [ -n "$want" ] && ! ip -4 -o addr show | grep -q "inet $want/"; then
+  echo "WARNING: the ESPs look for the broker at $want ($secrets), this PC doesn't have that IP."
   echo "         Join the right Wi-Fi, or change MQTT_HOST and reflash the base + meeples."
 fi
 

@@ -232,7 +232,7 @@ function render(s) {
       <td><span class="dot" style="background:${COLORS[p.p]}"></span><b>P${p.p}</b>${p.skip ? "<span class='tag skip'>SKIP</span>" : ""}${p.on ? "" : "<span class='tag off'>OFFLINE</span>"}</td>
       <td>cell <b>${p.cell ?? "–"}</b></td>
       <td class="hearts">${hearts(p.hp)}</td>
-      <td class="muted mono">${m.batt ? (m.batt / 1000).toFixed(2) + " V" : ""}</td></tr>`;
+      </tr>`;
   }).join("") || "<tr><td class='muted'>No players yet. Short press to add one.</td></tr>";
   // Offline devices that are not in the game are leftovers (old retained messages): hide them.
   const board = s.board_tags || {};

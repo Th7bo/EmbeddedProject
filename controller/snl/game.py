@@ -43,7 +43,6 @@ class Meeple:
     online: bool = False
     pid: int = 0
     tag: str = "-"
-    batt: int | None = None  # supply voltage in mV
     flash_until: float = 0.0  # LED solid until then (tag scanned for mapping)
 
 
@@ -143,7 +142,7 @@ class Game:
         t = self.turn
         return {**self._game_state(),
                 "path": t.path if t else [], "progress": t.progress if t else 0, "start": t.start if t else None,
-                "meeples": [{"mac": mac, "p": m.pid, "online": m.online, "tag": m.tag, "batt": m.batt,
+                "meeples": [{"mac": mac, "p": m.pid, "online": m.online, "tag": m.tag,
                              "cell": self.tags.get(m.tag) if m.tag != "-" else None,
                              "known": m.tag == "-" or m.tag in self.tags}
                             for mac, m in sorted(self.meeples.items())],
@@ -166,8 +165,6 @@ class Game:
                 log.info("P%d left the lobby (meeple offline)", m.pid)
                 del self.players[m.pid]
                 m.pid = 0
-        elif what == "batt":
-            m.batt = int(payload) if payload.strip().isdigit() else None
         elif what == "tag":
             old, m.tag = m.tag, payload.strip().upper() or "-"
             if not m.online or m.tag == old:
